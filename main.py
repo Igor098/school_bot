@@ -1,7 +1,9 @@
 import asyncio
+from pathlib import Path
+
 from aiogram import Bot, Dispatcher
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 
 from handlers.callback_handlers import callback_router
 from handlers.command_handlers import command_router

@@ -58,6 +58,15 @@ class Day(Base):
     lessons = relationship("Lesson", back_populates="day")
 
 
+class Subject(Base):
+    __tablename__ = 'subjects'
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+
+    lessons = relationship("Lesson", back_populates="subject")
+
+
 class Lesson(Base):
     __tablename__ = 'lessons'
     __table_args__ = (
@@ -67,6 +76,13 @@ class Lesson(Base):
     class_id: Mapped[int] = mapped_column(Integer, ForeignKey("classes.id"), nullable=False)
     day_id: Mapped[int] = mapped_column(Integer, ForeignKey("days.id"), nullable=False)
     period: Mapped[int] = mapped_column(Integer, nullable=False)
-    subject: Mapped[str] = mapped_column(String, nullable=False)
+    subject_id: Mapped[int] = mapped_column(Integer, ForeignKey("subjects.id"), nullable=False)
+    is_canceled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
     class_ = relationship("Class", back_populates="lessons")
     day = relationship("Day", back_populates="lessons")
+    subject = relationship("Subject", back_populates="lessons")
+
+    def __repr__(self):
+        status = "отменён" if self.is_canceled else "запланирован"
+        return f"<Lesson(class_id={self.class_id}, day_id={self.day_id}, period={self.period}, status={status})>"

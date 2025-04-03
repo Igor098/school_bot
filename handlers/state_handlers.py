@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy import Null, select
 
 from database.dao import UserDAO
-from database.dao_adapter import find_user_by_telegram_id, find_class
+from database.dao_adapter import find_user_by_telegram_id, find_class, add_user, add_class_for_user
 from database.models import User, Class, UserClass
 from dependencies.dao_dep import get_session_with_commit
 from exceptions.user_exceptions import ClassNotFoundException, UserRegisteredException
@@ -42,23 +42,20 @@ async def set_class_identifier(message: Message, state: FSMContext):
     class_identifier = data.get("class_identifier", None)
 
     try:
-        result = await find_user_by_telegram_id(user_id)
-        logger.info("user_answer", result)
-        if result:
+        is_registered = await find_user_by_telegram_id(telegram_id=user_id)
+        logger.info("user_answer", is_registered)
+        if is_registered:
             raise UserRegisteredException
 
-        result = await find_class(int(class_number), class_identifier)
-        class_ = result.scalars().first()
+        class_ = await find_class(class_number=int(class_number), class_identifier=class_identifier)
 
         if not class_:
             raise ClassNotFoundException
 
-        new_user = User(telegram_id=user_id, username=username, is_admin=False)
-        session.add(new_user)
-        await session.flush()
+        new_user = await add_user(telegram_id=user_id, username=username, is_admin=False)
+        user_class = await add_class_for_user(user_id=new_user.id, class_id=class_.id)
 
-        user_class = UserClass(user_id=new_user.id, class_id=class_.id)
-        session.add(user_class)
+        logger.info(f"Связь {user_class} создана")
 
         await message.answer("Вы успешно зарегистрированы!")
 

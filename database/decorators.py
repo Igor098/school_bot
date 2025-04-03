@@ -12,7 +12,9 @@ def with_commit_session(func: T) -> T:
         # Используем асинхронный генератор для получения сессии
         async for session in get_session_with_commit():
             kwargs["session"] = session
-            return await func(*args, **kwargs)
+            result = await func(*args, **kwargs)
+            await session.commit()
+            return result
 
     return wrapper
 
