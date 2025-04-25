@@ -1,9 +1,12 @@
 import json
 from pathlib import Path
+from typing import Any
 
 import aiofiles
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import null
 
+from database import session
 from database.dao import UserDAO, ClassDAO, UserClassDAO, ScheduleDAO
 from database.decorators import with_commit_session
 
@@ -16,12 +19,13 @@ async def find_user_by_telegram_id(session: AsyncSession, telegram_id: int):
 
 
 @with_commit_session
-async def find_class(session: AsyncSession, class_number: int, class_identifier: str):
+async def find_class(session: AsyncSession, class_number: int, class_identifier: str | None = None):
     class_dao = ClassDAO(session)
-    class_ = await class_dao.find_one_or_none({
-        "grade": class_number,
-        "identifier": class_identifier
-    })
+    filters: dict[str, Any] = {"grade": class_number}
+    if class_identifier:
+        filters["identifier"] = class_identifier
+
+    class_ = await class_dao.find_one_or_none(filters)
     return class_
 
 
@@ -61,6 +65,13 @@ async def get_full_schedule(session: AsyncSession):
     schedule = await dao.get_full_schedule()
     file_path = Path("schedule.json")
     await save_schedule_to_file(schedule, file_path)
+
+
+@with_commit_session
+async def check_register(session: AsyncSession, telegram_id: int):
+    user_dao = UserDAO(session)
+    user = await user_dao.find_one_or_none({"telegram_id": telegram_id})
+    return True if user else False
 
 
 async def save_schedule_to_file(schedule: list[dict], file_path: Path):

@@ -2,7 +2,6 @@ import json
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from sqlalchemy import Null, select
 
 from database.dao import UserDAO
 from database.dao_adapter import find_user_by_telegram_id, find_class, add_user, add_class_for_user

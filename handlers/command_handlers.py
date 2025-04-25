@@ -2,8 +2,8 @@ from pathlib import Path
 
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message, FSInputFile
 from aiogram.fsm.context import FSMContext
+from aiogram.types import Message, FSInputFile
 
 from database.dao_adapter import get_user_info, get_full_schedule
 from keyboards.confirmation_keyboard import confirmation_keyboard
